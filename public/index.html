@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Academia ERP — Learning Management System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#F0F2F5;--surface:#FFFFFF;--surface2:#F8F9FA;--border:#E2E6EA;--border2:#CDD3DA;
+  --text:#1A1D23;--text2:#495057;--text3:#868E96;
+  --accent:#1971C2;--accent-h:#1562A8;--accent-bg:#E7F5FF;--accent-b:#A5D8FF;
+  --green:#2F9E44;--green-bg:#EBFBEE;--green-b:#B2F2BB;
+  --red:#C92A2A;--red-bg:#FFF5F5;--red-b:#FFC9C9;
+  --amber:#E67700;--amber-bg:#FFF9DB;--amber-b:#FFEC99;
+  --purple:#6741D9;--purple-bg:#F3F0FF;--purple-b:#D0BFFF;
+  --teal:#0C8599;--teal-bg:#E3FAFC;
+  --sidebar:#1C2333;--sidebar-h:#252D3D;--sidebar-a:#1971C2;
+  --r:8px;--rs:6px;--rl:12px;
+  --sh:0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.04);
+  --shm:0 4px 12px rgba(0,0,0,.10),0 2px 4px rgba(0,0,0,.06);
+  --shl:0 8px 24px rgba(0,0,0,.12),0 4px 8px rgba(0,0,0,.06);
+  --shxl:0 20px 60px rgba(0,0,0,.15);
+  --sw:240px;--th:58px;
+  --f:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+  --m:'JetBrains Mono',monospace;
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+html{font-size:14px;scroll-behavior:smooth}
+body{font-family:var(--f);background:var(--bg);color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased;line-height:1.5}
+
+/* AUTH */
+#auth{min-height:100vh;display:flex;background:var(--sidebar);position:relative;overflow:hidden}
+#auth::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 80% 70% at 30% 50%,rgba(25,113,194,.25) 0%,transparent 60%),radial-gradient(ellipse 50% 50% at 80% 20%,rgba(103,65,217,.15) 0%,transparent 50%);pointer-events:none}
+#auth::after{content:'';position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.03) 1px,transparent 1px);background-size:40px 40px;pointer-events:none}
+
+.auth-left{flex:1;display:flex;flex-direction:column;justify-content:center;padding:60px 64px;position:relative;z-index:1}
+.auth-brand{display:flex;align-items:center;gap:12px;margin-bottom:56px}
+.auth-brand-ico{width:42px;height:42px;background:var(--accent);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;color:white}
+.auth-brand-name{font-size:20px;font-weight:700;color:white;letter-spacing:-.3px}
+.auth-brand-name small{display:block;font-size:10px;font-weight:500;color:rgba(255,255,255,.4);letter-spacing:1.5px;text-transform:uppercase;margin-top:1px}
+.auth-h{font-size:clamp(28px,3.5vw,42px);font-weight:800;color:white;line-height:1.15;letter-spacing:-.8px;margin-bottom:16px}
+.auth-h em{font-style:normal;color:#74C0FC}
+.auth-sub{font-size:15px;color:rgba(255,255,255,.5);max-width:380px;line-height:1.7;margin-bottom:40px}
+.auth-feats{display:flex;flex-direction:column;gap:12px}
+.auth-feat{display:flex;align-items:center;gap:12px;color:rgba(255,255,255,.6);font-size:13.5px}
+.auth-feat-dot{width:6px;height:6px;border-radius:50%;background:#74C0FC;flex-shrink:0}
+
+.auth-right{width:460px;background:var(--surface);display:flex;flex-direction:column;justify-content:center;padding:48px 44px;position:relative;z-index:1;box-shadow:-20px 0 60px rgba(0,0,0,.3)}
+.auth-rt{font-size:22px;font-weight:700;color:var(--text);letter-spacing:-.3px;margin-bottom:4px}
+.auth-rs{font-size:13px;color:var(--text3);margin-bottom:24px}
+
+.tab-row{display:flex;background:var(--bg);border-radius:var(--rs);padding:3px;margin-bottom:24px;border:1px solid var(--border)}
+.tab-btn{flex:1;padding:8px;border:none;background:none;font-family:var(--f);font-size:13px;font-weight:500;color:var(--text3);border-radius:5px;cursor:pointer;transition:all .15s}
+.tab-btn.active{background:white;color:var(--text);font-weight:600;box-shadow:var(--sh)}
+
+.role-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:18px}
+.role-card{border:2px solid var(--border);border-radius:var(--r);padding:12px;cursor:pointer;transition:all .15s;background:var(--surface);text-align:center}
+.role-card:hover{border-color:var(--accent)}
+.role-card.sel{border-color:var(--accent);background:var(--accent-bg)}
+.role-card .ri{font-size:22px;margin-bottom:4px}
+.role-card .rn{font-size:12px;font-weight:700;color:var(--text)}
+.role-card .rd{font-size:11px;color:var(--text3)}
+
+/* FORMS */
+.fg{margin-bottom:14px}
+.fg label{display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bottom:5px;letter-spacing:.1px}
+.fc{width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--rs);font-family:var(--f);font-size:13.5px;color:var(--text);background:var(--surface);transition:border-color .15s,box-shadow .15s;outline:none}
+.fc:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(25,113,194,.12)}
+.fc::placeholder{color:var(--text3)}
+textarea.fc{resize:vertical;min-height:80px;line-height:1.5}
+select.fc{cursor:pointer}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:8px 16px;border:1.5px solid transparent;border-radius:var(--rs);font-family:var(--f);font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;text-decoration:none;white-space:nowrap;line-height:1}
+.btn-p{background:var(--accent);color:white;border-color:var(--accent)}
+.btn-p:hover{background:var(--accent-h);border-color:var(--accent-h)}
+.btn-s{background:white;color:var(--text);border-color:var(--border2)}
+.btn-s:hover{background:var(--bg)}
+.btn-d{background:var(--red-bg);color:var(--red);border-color:var(--red-b)}
+.btn-d:hover{background:var(--red);color:white;border-color:var(--red)}
+.btn-g{background:transparent;color:var(--text3);border-color:transparent}
+.btn-g:hover{background:var(--bg);color:var(--text)}
+.btn-ok{background:var(--green-bg);color:var(--green);border-color:var(--green-b)}
+.btn-ok:hover{background:var(--green);color:white}
+.btn-sm{padding:5px 12px;font-size:12px}
+.btn-lg{padding:11px 22px;font-size:14px}
+.btn-full{width:100%}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+
+.alert{padding:10px 14px;border-radius:var(--rs);font-size:13px;display:flex;align-items:flex-start;gap:8px;border:1px solid}
+.ae{background:var(--red-bg);color:var(--red);border-color:var(--red-b)}
+.ai{background:var(--accent-bg);color:var(--accent);border-color:var(--accent-b)}
+.aok{background:var(--green-bg);color:var(--green);border-color:var(--green-b)}
+.aw{background:var(--amber-bg);color:var(--amber);border-color:var(--amber-b)}
+
+/* APP */
+#app{display:none;min-height:100vh;background:var(--bg)}
+
+.sidebar{position:fixed;top:0;left:0;width:var(--sw);height:100vh;background:var(--sidebar);display:flex;flex-direction:column;z-index:200;overflow-y:auto}
+.sb-logo{padding:16px;border-bottom:1px solid rgba(255,255,255,.07);display:flex;align-items:center;gap:10px}
+.sb-logo-m{width:34px;height:34px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:white;flex-shrink:0}
+.sb-logo-t{font-size:15px;font-weight:700;color:white;letter-spacing:-.3px;line-height:1.2}
+.sb-logo-t small{display:block;font-size:10px;font-weight:500;color:rgba(255,255,255,.35);letter-spacing:1px;text-transform:uppercase;margin-top:1px}
+.sb-user{padding:12px 16px;border-bottom:1px solid rgba(255,255,255,.07);display:flex;align-items:center;gap:10px}
+.sb-av{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:white;flex-shrink:0}
+.sb-un{font-size:13px;font-weight:600;color:white;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sb-ur{font-size:11px;color:rgba(255,255,255,.4);text-transform:capitalize}
+.sb-nav{flex:1;padding:8px 0}
+.sb-sec{padding:12px 16px 4px;font-size:10px;font-weight:700;color:rgba(255,255,255,.2);letter-spacing:1.2px;text-transform:uppercase}
+.sb-item{display:flex;align-items:center;gap:9px;padding:8px 16px;color:rgba(255,255,255,.65);cursor:pointer;transition:all .12s;font-size:13px;font-weight:500;user-select:none}
+.sb-item:hover{background:var(--sidebar-h);color:white}
+.sb-item.active{background:var(--sidebar-a);color:white;font-weight:600}
+.sb-ico{width:16px;text-align:center;font-size:14px;flex-shrink:0}
+.sb-badge{margin-left:auto;background:#E03131;color:white;font-size:10px;font-weight:700;padding:1px 6px;border-radius:10px;min-width:18px;text-align:center}
+.sb-bot{padding:12px 16px;border-top:1px solid rgba(255,255,255,.07)}
+
+.main{margin-left:var(--sw);min-height:100vh;display:flex;flex-direction:column}
+.topbar{height:var(--th);background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 24px;gap:12px;position:sticky;top:0;z-index:100}
+.tb-title{flex:1;font-size:15px;font-weight:700;color:var(--text);letter-spacing:-.2px}
+.tb-acts{display:flex;align-items:center;gap:8px}
+.nb{position:relative;width:36px;height:36px;border:1.5px solid var(--border);border-radius:var(--rs);background:white;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;transition:all .15s;color:var(--text2)}
+.nb:hover{background:var(--bg)}
+.nd{position:absolute;top:-3px;right:-3px;width:16px;height:16px;background:#E03131;color:white;font-size:9px;font-weight:700;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid white}
+
+.pw{flex:1;padding:20px 24px;min-height:calc(100vh - var(--th))}
+.page{display:none}
+.page.active{display:block}
+
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--sh)}
+.cb{padding:18px 20px}
+.ch{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.ct{font-size:14px;font-weight:700;color:var(--text)}
+
+.sr{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:12px;margin-bottom:16px}
+.sb{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px;box-shadow:var(--sh)}
+.sl{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+.sv{font-size:28px;font-weight:800;color:var(--text);letter-spacing:-.5px;line-height:1;margin-bottom:2px}
+.ss{font-size:11px;color:var(--text3)}
+
+.cg{display:grid;grid-template-columns:repeat(auto-fill,minmax(275px,1fr));gap:14px}
+.cc{background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);overflow:hidden;box-shadow:var(--sh);cursor:pointer;transition:box-shadow .15s,transform .15s}
+.cc:hover{box-shadow:var(--shm);transform:translateY(-1px)}
+.cb2{height:88px;position:relative;padding:12px 14px;display:flex;align-items:flex-end}
+.cb2::after{content:'';position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.45),transparent 55%)}
+.ccode{position:relative;z-index:1;background:rgba(255,255,255,.18);backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,.25);color:white;font-size:11px;font-weight:700;padding:3px 8px;border-radius:4px;font-family:var(--m);letter-spacing:1px;cursor:pointer}
+.cbody{padding:14px 16px}
+.cn{font-size:14px;font-weight:700;color:var(--text);margin-bottom:2px}
+.csub{font-size:12px;color:var(--text3);margin-bottom:10px}
+.cm{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--text3);flex-wrap:wrap}
+.cf{padding:10px 16px;border-top:1px solid var(--border);display:flex;gap:6px}
+
+.al{display:flex;flex-direction:column;gap:8px}
+.ar{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:border-color .15s,box-shadow .15s;box-shadow:var(--sh)}
+.ar:hover{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-bg)}
+.ai2{width:38px;height:38px;border-radius:var(--rs);background:var(--accent-bg);border:1px solid var(--accent-b);display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}
+.ainf{flex:1;min-width:0}
+.atit{font-size:13.5px;font-weight:600;color:var(--text);margin-bottom:2px}
+.amet{font-size:11.5px;color:var(--text3)}
+.argt{flex-shrink:0;display:flex;flex-direction:column;align-items:flex-end;gap:4px}
+
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:4px;font-size:11.5px;font-weight:600;border:1px solid}
+.bb{background:var(--accent-bg);color:var(--accent);border-color:var(--accent-b)}
+.bg{background:var(--green-bg);color:var(--green);border-color:var(--green-b)}
+.br{background:var(--red-bg);color:var(--red);border-color:var(--red-b)}
+.ba{background:var(--amber-bg);color:var(--amber);border-color:var(--amber-b)}
+.bp{background:var(--purple-bg);color:var(--purple);border-color:var(--purple-b)}
+.bt{background:var(--teal-bg);color:var(--teal);border-color:#99E9F2}
+.bgr{background:var(--bg);color:var(--text3);border-color:var(--border)}
+
+.tw{overflow-x:auto;border-radius:var(--r)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+thead th{background:var(--bg);color:var(--text3);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;padding:10px 14px;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap}
+tbody td{padding:11px 14px;border-bottom:1px solid var(--border);vertical-align:middle}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover{background:var(--bg)}
+
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(3px);z-index:1000;display:flex;align-items:center;justify-content:center;padding:16px;opacity:0;pointer-events:none;transition:opacity .18s}
+.ov.show{opacity:1;pointer-events:all}
+.modal{background:var(--surface);border-radius:var(--rl);width:100%;max-width:560px;max-height:92vh;overflow-y:auto;box-shadow:var(--shxl);transform:translateY(12px) scale(.98);transition:transform .18s}
+.ov.show .modal{transform:translateY(0) scale(1)}
+.mh{padding:20px 22px 0;display:flex;align-items:center;justify-content:space-between}
+.mt2{font-size:17px;font-weight:700;color:var(--text);letter-spacing:-.2px}
+.mc{width:30px;height:30px;border:1px solid var(--border);border-radius:var(--rs);background:none;cursor:pointer;font-size:14px;color:var(--text3);display:flex;align-items:center;justify-content:center;transition:all .12s}
+.mc:hover{background:var(--bg);color:var(--text)}
+.mb{padding:16px 22px 22px}
+
+.dz{border:2px dashed var(--border2);border-radius:var(--r);padding:24px;text-align:center;cursor:pointer;transition:all .15s;background:var(--bg)}
+.dz:hover,.dz.over{border-color:var(--accent);background:var(--accent-bg)}
+.di{font-size:28px;margin-bottom:6px}
+.dt{font-size:13px;font-weight:500;color:var(--text2)}
+.dh{font-size:11.5px;color:var(--text3);margin-top:3px}
+
+.fcs{display:flex;flex-direction:column;gap:6px;margin-top:10px}
+.fc2{display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--surface);border:1px solid var(--border);border-radius:var(--rs);font-size:12.5px}
+.fext{padding:1px 6px;border-radius:3px;background:var(--accent-bg);color:var(--accent);font-family:var(--m);font-size:10px;font-weight:700;text-transform:uppercase;border:1px solid var(--accent-b)}
+.fn{flex:1;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fs{color:var(--text3);font-size:11px;flex-shrink:0}
+.frm{cursor:pointer;color:var(--text3);transition:color .12s;flex-shrink:0;font-size:13px}
+.frm:hover{color:var(--red)}
+
+.prog{background:var(--border);border-radius:20px;height:6px;overflow:hidden}
+.pb{height:100%;border-radius:20px;transition:width .3s}
+.pb-b{background:var(--accent)}
+.pb-g{background:var(--green)}
+.pb-a{background:var(--amber)}
+.pb-r{background:var(--red)}
+
+.tw2{position:fixed;top:16px;right:16px;z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none}
+.toast{background:var(--text);color:white;padding:11px 16px;border-radius:var(--r);font-size:13px;font-weight:500;box-shadow:var(--shl);display:flex;align-items:center;gap:8px;min-width:260px;max-width:360px;pointer-events:all;animation:toastIn .25s ease}
+.toast.s{border-left:3px solid #51CF66}
+.toast.e{border-left:3px solid #FF6B6B}
+.toast.i{border-left:3px solid #74C0FC}
+.toast.w{border-left:3px solid #FFD43B}
+@keyframes toastIn{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
+
+.np{position:fixed;top:0;right:0;bottom:0;width:360px;background:var(--surface);border-left:1px solid var(--border);z-index:500;transform:translateX(100%);transition:transform .25s;display:flex;flex-direction:column;box-shadow:var(--shxl)}
+.np.open{transform:translateX(0)}
+.nh{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.nt{font-size:15px;font-weight:700;color:var(--text)}
+.ns{flex:1;overflow-y:auto}
+.ni{padding:13px 20px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .12s}
+.ni:hover{background:var(--bg)}
+.ni.unread{background:#EFF6FF}
+.ni.unread:hover{background:#DBEAFE}
+.nit{font-size:13px;font-weight:600;color:var(--text);margin-bottom:2px}
+.nim{font-size:12px;color:var(--text2);line-height:1.5}
+.nitm{font-size:11px;color:var(--text3);margin-top:3px}
+
+.empty{text-align:center;padding:48px 20px}
+.ei{font-size:40px;margin-bottom:12px;opacity:.4}
+.empty h3{font-size:15px;font-weight:700;color:var(--text2);margin-bottom:6px}
+.empty p{font-size:13px;color:var(--text3);max-width:260px;margin:0 auto 16px}
+
+.cdh{height:120px;border-radius:var(--rl);position:relative;display:flex;align-items:flex-end;padding:16px 20px;margin-bottom:16px;overflow:hidden}
+.cdh::after{content:'';position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.6),rgba(0,0,0,.1) 60%,transparent)}
+.cdi{position:relative;z-index:1}
+.cdn{font-size:22px;font-weight:800;color:white;letter-spacing:-.4px;margin-bottom:2px}
+.cdsu{font-size:13px;color:rgba(255,255,255,.7)}
+
+.ctabs{display:flex;gap:2px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:4px;margin-bottom:16px;flex-wrap:wrap}
+.ctab{padding:7px 14px;border:none;background:none;font-family:var(--f);font-size:12.5px;font-weight:500;color:var(--text3);border-radius:var(--rs);cursor:pointer;transition:all .12s;white-space:nowrap}
+.ctab.active{background:var(--bg);color:var(--text);font-weight:700;border:1px solid var(--border2)}
+.tp{display:none}
+.tp.active{display:block}
+
+.spin{display:inline-block;width:18px;height:18px;border:2px solid rgba(255,255,255,.3);border-top-color:white;border-radius:50%;animation:rot .6s linear infinite}
+.spin-d{border-color:rgba(25,113,194,.2);border-top-color:var(--accent)}
+@keyframes rot{to{transform:rotate(360deg)}}
+.loading{display:flex;align-items:center;justify-content:center;padding:48px;gap:10px;color:var(--text3);font-size:13px}
+
+.back{display:inline-flex;align-items:center;gap:6px;color:var(--text3);font-size:13px;font-weight:500;cursor:pointer;margin-bottom:14px;border:none;background:none;font-family:var(--f);padding:0;transition:color .12s}
+.back:hover{color:var(--text)}
+.divider{height:1px;background:var(--border);margin:14px 0}
+
+.cxg{display:flex;flex-wrap:wrap;gap:6px}
+.cx{display:flex;align-items:center;gap:5px;padding:5px 10px;border:1.5px solid var(--border2);border-radius:4px;cursor:pointer;font-size:12px;font-weight:500;color:var(--text3);transition:all .12s;user-select:none;font-family:var(--m)}
+.cx.chk{border-color:var(--accent);background:var(--accent-bg);color:var(--accent)}
+
+.uav{border-radius:var(--rs);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:white;flex-shrink:0}
+
+.act-item{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)}
+.act-item:last-child{border-bottom:none}
+.act-dot{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;margin-top:1px}
+.act-body{flex:1;min-width:0}
+.act-t{font-size:13px;font-weight:600;color:var(--text);margin-bottom:2px}
+.act-m{font-size:11.5px;color:var(--text3)}
+
+@media(max-width:700px){
+  .main{margin-left:0}
+  .sidebar{transform:translateX(-100%);transition:transform .2s}
+  .sidebar.open{transform:translateX(0)}
+  .auth-left{display:none}
+  .auth-right{width:100%;padding:40px 24px}
+  .pw{padding:14px}
+  .cg{grid-template-columns:1fr}
+  .sr{grid-template-columns:repeat(2,1fr)}
+  .g2{grid-template-columns:1fr}
+  .np{width:100%}
+}
+</style>
+</head>
+<body>
+
+<!-- TOASTS -->
+<div class="tw2" id="tc"></div>
+
+<!-- AUTH -->
+<div id="auth">
+  <div class="auth-left">
+    <div class="auth-brand">
+      <div class="auth-brand-ico">A</div>
+      <div class="auth-brand-name">Academia ERP <small>Learning Management System</small></div>
+    </div>
+    <h1 class="auth-h">The <em>intelligent</em><br>academic platform<br>for modern colleges.</h1>
+    <p class="auth-sub">A unified workspace for professors, students, and administrators to manage classrooms, assignments, grading, and academic analytics.</p>
+    <div class="auth-feats">
+      <div class="auth-feat"><span class="auth-feat-dot"></span>Create classrooms with unique 6-character class codes</div>
+      <div class="auth-feat"><span class="auth-feat-dot"></span>Post assignments with file upload and deadline validation</div>
+      <div class="auth-feat"><span class="auth-feat-dot"></span>Grade submissions and download Excel grade reports</div>
+      <div class="auth-feat"><span class="auth-feat-dot"></span>Admin analytics with submission and performance tracking</div>
+    </div>
+  </div>
+  <div class="auth-right">
+    <div class="auth-rt">Welcome back</div>
+    <div class="auth-rs">Sign in to your account or create a new one to get started.</div>
+    <div class="tab-row">
+      <button class="tab-btn active" id="tab-login-btn">Sign In</button>
+      <button class="tab-btn" id="tab-register-btn">Register</button>
+    </div>
+    <!-- LOGIN -->
+    <div id="login-form">
+      <div class="fg"><label>Email Address</label><input type="email" class="fc" id="lemail" placeholder="you@university.edu" autocomplete="email"></div>
+      <div class="fg"><label>Password</label><input type="password" class="fc" id="lpwd" placeholder="Your password" autocomplete="current-password"></div>
+      <div id="lerr" class="alert ae mt8" style="display:none;margin-bottom:12px;"></div>
+      <button class="btn btn-p btn-full btn-lg" id="lbtn">Sign In</button>
+      <p style="font-size:11.5px;color:var(--text3);text-align:center;margin-top:10px;">Default admin: <b>admin@academia.edu</b> / <b>Admin@123456</b></p>
+    </div>
+    <!-- REGISTER -->
+    <div id="register-form" style="display:none">
+      <div style="margin-bottom:14px;">
+        <label style="font-size:12px;font-weight:600;color:var(--text2);display:block;margin-bottom:8px;">I am a...</label>
+        <div class="role-grid">
+          <div class="role-card sel" id="role-card-prof" data-role="professor"><div class="ri">👨‍🏫</div><div class="rn">Professor</div><div class="rd">Create &amp; teach</div></div>
+          <div class="role-card" id="role-card-stu" data-role="student"><div class="ri">👨‍🎓</div><div class="rn">Student</div><div class="rd">Learn &amp; submit</div></div>
+        </div>
+        <input type="hidden" id="rrole" value="professor">
+      </div>
+      <div class="g2">
+        <div class="fg"><label>Full Name</label><input type="text" class="fc" id="rname" placeholder="Dr. Jane Smith"></div>
+        <div class="fg" id="rsidg" style="display:none"><label>Student ID</label><input type="text" class="fc" id="rsid" placeholder="STU2024001"></div>
+      </div>
+      <div class="fg"><label>Email Address</label><input type="email" class="fc" id="remail" placeholder="you@university.edu"></div>
+      <div class="fg"><label>Department</label><input type="text" class="fc" id="rdept" placeholder="e.g. Computer Science"></div>
+      <div class="fg"><label>Password <span style="font-weight:400;color:var(--text3)">(min 6 chars)</span></label><input type="password" class="fc" id="rpwd" placeholder="Create a strong password"></div>
+      <div id="rerr" class="alert ae mt8" style="display:none;margin-bottom:12px;"></div>
+      <button class="btn btn-p btn-full btn-lg" id="rbtn">Create Account</button>
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <aside class="sidebar" id="sidebar">
+    <div class="sb-logo">
+      <div class="sb-logo-m">A</div>
+      <div class="sb-logo-t">Academia ERP <small>LMS Platform</small></div>
+    </div>
+    <div class="sb-user">
+      <div class="sb-av" id="sbav">--</div>
+      <div style="flex:1;min-width:0;">
+        <div class="sb-un" id="sbname">Loading...</div>
+        <div class="sb-ur" id="sbrole">—</div>
+      </div>
+    </div>
+    <nav class="sb-nav" id="sbnav"></nav>
+    <div class="sb-bot">
+      <button class="btn btn-g btn-full" id="signout-btn" style="justify-content:flex-start;color:rgba(255,255,255,.45);font-size:12.5px;">
+        🚪 Sign Out
+      </button>
+    </div>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <div class="tb-title" id="tbtitle">Dashboard</div>
+      <div class="tb-acts">
+        <button class="nb" id="nbbtn" title="Notifications">
+          🔔<span class="nd" id="ncount" style="display:none">0</span>
+        </button>
+        <div style="font-size:12px;color:var(--text3);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" id="tbusr"></div>
+      </div>
+    </header>
+    <div class="pw">
+      <div class="page active" id="page-dashboard"></div>
+      <div class="page" id="page-classrooms"></div>
+      <div class="page" id="page-classroom-detail"></div>
+      <div class="page" id="page-assignment-detail"></div>
+      <div class="page" id="page-my-marks"></div>
+      <div class="page" id="page-users"></div>
+      <div class="page" id="page-analytics"></div>
+      <div class="page" id="page-profile"></div>
+      <div class="page" id="page-activity"></div>
+      <div class="page" id="page-jobs"></div>
+    </div>
+  </div>
+</div>
+
+<!-- NOTIFICATIONS PANEL -->
+<div class="np" id="notif-panel">
+  <div class="nh">
+    <span class="nt">Notifications</span>
+    <div style="display:flex;gap:8px;align-items:center;">
+      <button class="btn btn-g btn-sm" id="notif-mark-read-btn">Mark all read</button>
+      <button class="mc" id="notif-close-btn">✕</button>
+    </div>
+  </div>
+  <div class="ns" id="nlist"><div class="empty"><p>No notifications yet.</p></div></div>
+</div>
+
+<!-- MODAL -->
+<div class="ov" id="ov">
+  <div class="modal" id="modal">
+    <div class="mh">
+      <h2 class="mt2" id="mtitle">Modal</h2>
+      <button class="mc" id="modal-close-btn">✕</button>
+    </div>
+    <div class="mb" id="mbody"></div>
+  </div>
+</div>
+
+
+<script src="app.js"></script>
+<script src="jobs-admin.js"></script>
+</body>
+</html>
