@@ -315,15 +315,44 @@ function updateUser() {
 function buildNav() {
   const common = [{id:'dashboard',lbl:'Dashboard',ic:'📊'}];
   const extra = {
-    professor: [{id:'classrooms',lbl:'My Classrooms',ic:'🏫'},{id:'activity',lbl:'Activity Feed',ic:'📡'},{id:'profile',lbl:'My Profile',ic:'👤'}],
-    student:   [{id:'classrooms',lbl:'My Classrooms',ic:'🏫'},{id:'my-marks',lbl:'My Grades',ic:'🎯'},{id:'profile',lbl:'My Profile',ic:'👤'}],
-    admin:     [{id:'classrooms',lbl:'All Classrooms',ic:'🏫'},{id:'users',lbl:'Manage Users',ic:'👥'},{id:'analytics',lbl:'Analytics',ic:'📈'},{id:'jobs',lbl:'Job Queue & Scheduling',ic:'⚙️'},{id:'profile',lbl:'My Profile',ic:'👤'}]
+    professor: [
+      {id:'classrooms',lbl:'My Classrooms',ic:'🏫'},
+      {id:'attendance',lbl:'Attendance',ic:'📅'},
+      {id:'activity',lbl:'Activity Feed',ic:'📡'},
+      {id:'profile',lbl:'My Profile',ic:'👤'}
+    ],
+    student: [
+      {id:'classrooms',lbl:'My Classrooms',ic:'🏫'},
+      {id:'attendance',lbl:'My Attendance',ic:'📅'},
+      {id:'my-marks',lbl:'My Grades',ic:'🎯'},
+      {id:'profile',lbl:'My Profile',ic:'👤'}
+    ],
+    admin: [
+      {id:'classrooms',lbl:'All Classrooms',ic:'🏫'},
+      {id:'attendance',lbl:'Attendance Reports',ic:'📅'},
+      {id:'users',lbl:'Manage Users',ic:'👥'},
+      {id:'analytics',lbl:'Analytics',ic:'📈'},
+      {id:'jobs',lbl:'Job Queue & Scheduling',ic:'⚙️'},
+      {id:'profile',lbl:'My Profile',ic:'👤'}
+    ]
   };
   const items = [...common,...(extra[CU.role]||[])];
   $('sbnav').innerHTML = items.map(i=>`<div class="sb-item" id="nav-${i.id}" data-action="navTo" data-page="${i.id}"><span class="sb-ico">${i.ic}</span><span>${i.lbl}</span></div>`).join('');
 }
 
-const pageTitles = {dashboard:'Dashboard',classrooms:'Classrooms','classroom-detail':'Classroom','assignment-detail':'Assignment','my-marks':'My Grades',users:'Users',analytics:'Analytics',profile:'My Profile',activity:'Activity Feed',jobs:'Job Queue & Scheduling'};
+const pageTitles = {
+  dashboard:'Dashboard',
+  classrooms:'Classrooms',
+  'classroom-detail':'Classroom',
+  'assignment-detail':'Assignment',
+  'my-marks':'My Grades',
+  users:'Users',
+  analytics:'Analytics',
+  profile:'My Profile',
+  activity:'Activity Feed',
+  jobs:'Job Queue & Scheduling',
+  attendance:'Attendance Management'
+};
 
 function navTo(pid, data) {
   document.querySelectorAll('.sb-item').forEach(e=>e.classList.remove('active'));
@@ -342,6 +371,7 @@ function navTo(pid, data) {
     case 'profile': loadProfile(); break;
     case 'activity': loadActivity(); break;
     case 'jobs': if (CU.role==='admin') loadJobsAdmin(); break;
+    case 'attendance': if (typeof loadAttendanceModule === 'function') loadAttendanceModule(data); break;
   }
 }
 

@@ -125,5 +125,6 @@ const notificationSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 const Notification = mongoose.model('Notification', notificationSchema);
+const Attendance = require('./Attendance');
 
-module.exports = { User, Classroom, Assignment, Submission, Notification };
+module.exports = { User, Classroom, Assignment, Submission, Notification, Attendance };
