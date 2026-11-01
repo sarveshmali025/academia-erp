@@ -76,6 +76,7 @@ app.use('/api/auth', require('./routes/auth'));
 app.use('/api/classrooms', require('./routes/classrooms'));
 app.use('/api/assignments', require('./routes/assignments'));
 app.use('/api/attendance', require('./routes/attendance'));   // Attendance module
+app.use('/api/academic-analytics', require('./routes/academicAnalytics')); // Academic Performance Analytics
 app.use('/api/admin/jobs', require('./routes/jobs'));   // OS features: job queue / process manager / scheduler (admin only)
 app.use('/api/admin', require('./routes/admin'));
 app.use('/api/notifications', require('./routes/notifications'));

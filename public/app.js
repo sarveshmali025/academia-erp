@@ -324,6 +324,7 @@ function buildNav() {
     student: [
       {id:'classrooms',lbl:'My Classrooms',ic:'🏫'},
       {id:'attendance',lbl:'My Attendance',ic:'📅'},
+      {id:'performance',lbl:'Performance Analytics',ic:'📈'},
       {id:'my-marks',lbl:'My Grades',ic:'🎯'},
       {id:'profile',lbl:'My Profile',ic:'👤'}
     ],
@@ -351,7 +352,8 @@ const pageTitles = {
   profile:'My Profile',
   activity:'Activity Feed',
   jobs:'Job Queue & Scheduling',
-  attendance:'Attendance Management'
+  attendance:'Attendance Management',
+  performance:'Academic Performance Analytics'
 };
 
 function navTo(pid, data) {
@@ -372,6 +374,7 @@ function navTo(pid, data) {
     case 'activity': loadActivity(); break;
     case 'jobs': if (CU.role==='admin') loadJobsAdmin(); break;
     case 'attendance': if (typeof loadAttendanceModule === 'function') loadAttendanceModule(data); break;
+    case 'performance': if (typeof loadPerformanceAnalytics === 'function') loadPerformanceAnalytics(data); break;
   }
 }
 
