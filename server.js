@@ -121,6 +121,8 @@ const connectDB = async () => {
     // never take the rest of the ERP down.
     try { await require('./services/jobService').init(); }
     catch (e) { console.error('⚠️  Job queue failed to start (ERP continues without it):', e.message); }
+    try { require('./services/deadlineService').startDeadlineScheduler(); }
+    catch (e) { console.error('⚠️  Deadline scheduler failed to start:', e.message); }
   } catch (err) {
     console.error('❌ MongoDB connection failed:', err.message);
     process.exit(1);
@@ -176,6 +178,7 @@ const gracefulShutdown = async (signal) => {
   force.unref();
   try {
     if (httpServer) await new Promise(r => httpServer.close(r));
+    try { require('./services/deadlineService').stopDeadlineScheduler(); } catch (_) {}
     const summary = await require('./services/jobService').shutdown();
     if (summary) console.log(`⚙️  Workers stopped (${summary.workers} total, ${summary.forced} force-killed).`);
     await mongoose.connection.close();

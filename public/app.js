@@ -95,6 +95,13 @@ document.addEventListener('click', function(e) {
       case 'saveProfile': saveProfile(); break;
       case 'changePwd': changePwd(); break;
       case 'readNotif': readNotif(target.getAttribute('data-id')); break;
+      case 'filterDeadlines': setDeadlineFilter(target.getAttribute('data-filter')); break;
+      case 'openAllOverdueModal': showAllOverdueModal(); break;
+      case 'openAsgnFromModal': {
+        closeMod();
+        openAsgn(target.getAttribute('data-id'));
+        break;
+      }
       case 'stopProp': e.stopPropagation(); break;
     }
   } catch (err) {
@@ -333,7 +340,6 @@ function buildNav() {
       {id:'attendance',lbl:'Attendance Reports',ic:'📅'},
       {id:'users',lbl:'Manage Users',ic:'👥'},
       {id:'analytics',lbl:'Analytics',ic:'📈'},
-      {id:'jobs',lbl:'Job Queue & Scheduling',ic:'⚙️'},
       {id:'profile',lbl:'My Profile',ic:'👤'}
     ]
   };
@@ -351,7 +357,6 @@ const pageTitles = {
   analytics:'Analytics',
   profile:'My Profile',
   activity:'Activity Feed',
-  jobs:'Job Queue & Scheduling',
   attendance:'Attendance Management',
   performance:'Academic Performance Analytics'
 };
@@ -372,7 +377,6 @@ function navTo(pid, data) {
     case 'analytics': loadAnalytics(); break;
     case 'profile': loadProfile(); break;
     case 'activity': loadActivity(); break;
-    case 'jobs': if (CU.role==='admin') loadJobsAdmin(); break;
     case 'attendance': if (typeof loadAttendanceModule === 'function') loadAttendanceModule(data); break;
     case 'performance': if (typeof loadPerformanceAnalytics === 'function') loadPerformanceAnalytics(data); break;
   }
@@ -389,10 +393,187 @@ async function loadDash() {
       const r = await api('/classrooms');
       renderProfDash(r.classrooms||[]);
     } else {
-      const [cr, mr] = await Promise.all([api('/classrooms'), api('/assignments/me/marks')]);
-      renderStudDash(cr.classrooms||[], mr.grouped||[]);
+      const [cr, mr, dl] = await Promise.all([
+        api('/classrooms'),
+        api('/assignments/me/marks'),
+        api('/assignments/deadlines').catch(() => ({ success: true, assignments: [], summary: {}, olderOverdueList: [] }))
+      ]);
+      curDeadlines = dl;
+      renderStudDash(cr.classrooms||[], mr.grouped||[], dl);
     }
   } catch(e) { $('page-dashboard').innerHTML=`<div class="alert ae">${e.message}</div>`; }
+}
+
+let curDeadlines = null;
+let curDeadlineFilter = '7days';
+
+function setDeadlineFilter(f) {
+  curDeadlineFilter = f;
+  const container = $('deadlines-wrapper');
+  if (container && curDeadlines) {
+    container.outerHTML = renderDeadlinesSection(curDeadlines, curDeadlineFilter);
+  }
+}
+
+function showAllOverdueModal() {
+  if (!curDeadlines) return;
+  const allOverdue = [
+    ...(curDeadlines.assignments || []).filter(a => a.isOverdue),
+    ...(curDeadlines.olderOverdueList || [])
+  ];
+  allOverdue.sort((a, b) => new Date(a.deadline) - new Date(b.deadline));
+
+  if (allOverdue.length === 0) {
+    openMod('Overdue Assignments', '<div class="empty" style="padding:28px;"><div class="ei">🎉</div><p>No overdue assignments.</p></div>');
+    return;
+  }
+
+  const html = `
+    <div style="margin-bottom:12px;font-size:12.5px;color:var(--text2);">
+      These assignments have passed their deadline. Submissions will be marked as late.
+    </div>
+    <div class="tw" style="max-height:400px;overflow-y:auto;">
+      <table>
+        <thead>
+          <tr>
+            <th>Assignment</th>
+            <th>Subject</th>
+            <th>Deadline</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${allOverdue.map(a => `
+            <tr>
+              <td><b>${esc(a.title)}</b></td>
+              <td><span class="badge bgr">${esc(a.classroom?.subject || '')}</span></td>
+              <td style="font-size:11.5px;color:var(--text3);">${fmtDT(a.deadline)}</td>
+              <td><span class="badge br">${esc(a.timeText || 'Overdue')}</span></td>
+              <td><button class="btn btn-p btn-sm" data-action="openAsgnFromModal" data-id="${a._id}">Submit →</button></td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
+  openMod(`Overdue Assignments (${allOverdue.length})`, html);
+}
+
+function renderDeadlinesSection(dlData, activeFilter) {
+  const assignments = dlData?.assignments || [];
+  const olderOverdue = dlData?.olderOverdueList || [];
+
+  let filtered = [];
+  if (activeFilter === 'today') {
+    filtered = assignments.filter(a => a.isToday || a.isRecentOverdue);
+  } else if (activeFilter === '7days') {
+    filtered = assignments.filter(a => a.isNext7Days);
+  } else if (activeFilter === '14days') {
+    filtered = assignments.filter(a => a.isNext14Days);
+  } else {
+    filtered = assignments;
+  }
+
+  const olderCount = olderOverdue.length;
+
+  return `
+    <div id="deadlines-wrapper" class="card" style="margin-bottom:18px;">
+      <div class="ch" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="font-size:18px;">⏰</span>
+          <div>
+            <span class="ct">Upcoming Assignments</span>
+            <div style="font-size:11.5px;color:var(--text3);margin-top:2px;">
+              Smart deadline manager with priority tracking
+            </div>
+          </div>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+          <button class="btn btn-sm ${activeFilter==='today'?'btn-p':'btn-g'}" data-action="filterDeadlines" data-filter="today">Today</button>
+          <button class="btn btn-sm ${activeFilter==='7days'?'btn-p':'btn-g'}" data-action="filterDeadlines" data-filter="7days">Next 7 Days</button>
+          <button class="btn btn-sm ${activeFilter==='14days'?'btn-p':'btn-g'}" data-action="filterDeadlines" data-filter="14days">Next 14 Days</button>
+          <button class="btn btn-sm ${activeFilter==='all'?'btn-p':'btn-g'}" data-action="filterDeadlines" data-filter="all">All</button>
+        </div>
+      </div>
+      <div class="cb">
+        ${olderCount > 0 ? `
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.25);border-radius:8px;margin-bottom:14px;flex-wrap:wrap;gap:8px;">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span style="font-size:16px;">⚠️</span>
+              <span style="font-size:12.5px;font-weight:600;color:var(--red);">
+                You have <strong>${olderCount}</strong> older overdue assignment${olderCount > 1 ? 's' : ''} (> 3 days past deadline)
+              </span>
+            </div>
+            <button class="btn btn-d btn-sm" data-action="openAllOverdueModal" style="padding:4px 10px;font-size:11.5px;">View Overdue List (${olderCount})</button>
+          </div>
+        ` : ''}
+
+        ${filtered.length === 0 ? `
+          <div class="empty" style="padding:28px 16px;">
+            <div class="ei">🎉</div>
+            <h3 style="font-size:14px;margin-bottom:4px;">No Pending Deadlines</h3>
+            <p style="font-size:12px;color:var(--text3);">No assignments due in this timeframe. Great job staying ahead!</p>
+          </div>
+        ` : `
+          <div style="display:grid;grid-template-columns:repeat(auto-fill, minmax(280px, 1fr));gap:14px;">
+            ${filtered.map(a => {
+              let badgeStyle = '';
+              let borderColor = 'var(--accent)';
+              let icon = '⏳';
+              if (a.color === 'red') {
+                badgeStyle = 'background:rgba(239,68,68,0.12);color:#DC2626;border:1px solid rgba(239,68,68,0.3);';
+                borderColor = 'var(--red)';
+                icon = a.isOverdue ? '⚠️' : '🔥';
+              } else if (a.color === 'orange') {
+                badgeStyle = 'background:rgba(249,115,22,0.12);color:#EA580C;border:1px solid rgba(249,115,22,0.3);';
+                borderColor = '#EA580C';
+                icon = '⚡';
+              } else if (a.color === 'yellow') {
+                badgeStyle = 'background:rgba(234,179,8,0.12);color:#B45309;border:1px solid rgba(234,179,8,0.3);';
+                borderColor = '#CA8A04';
+                icon = '📌';
+              } else if (a.color === 'green') {
+                badgeStyle = 'background:rgba(16,185,129,0.12);color:#059669;border:1px solid rgba(16,185,129,0.3);';
+                borderColor = 'var(--green)';
+                icon = '✅';
+              } else {
+                badgeStyle = 'background:rgba(59,130,246,0.12);color:var(--accent);border:1px solid rgba(59,130,246,0.3);';
+                borderColor = 'var(--accent)';
+                icon = '📅';
+              }
+              return `
+                <div style="border:1px solid var(--border);border-left:4px solid ${borderColor};display:flex;flex-direction:column;justify-content:space-between;padding:14px;border-radius:10px;background:var(--bg);">
+                  <div>
+                    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:8px;">
+                      <span class="badge" style="${badgeStyle};font-size:11px;font-weight:700;">
+                        ${icon} ${esc(a.label || a.timeText)}
+                      </span>
+                      <span style="font-size:11px;color:var(--text3);font-weight:600;">${a.totalMarks} Marks</span>
+                    </div>
+                    <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:4px;line-height:1.3;">
+                      ${esc(a.title)}
+                    </div>
+                    <div style="font-size:12px;color:var(--text2);margin-bottom:8px;display:flex;align-items:center;gap:6px;">
+                      <span>📚</span> <span>${esc(a.classroom?.subject || 'Subject')}</span>
+                      <span style="color:var(--text3);">·</span>
+                      <span style="color:var(--text3);">${esc(a.classroom?.name || 'Classroom')}</span>
+                    </div>
+                    <div style="font-size:11.5px;color:var(--text3);margin-bottom:12px;">
+                      <span>⏰ ${esc(a.timeText)}</span> · <span>Due ${fmtDT(a.deadline)}</span>
+                    </div>
+                  </div>
+                  <div style="border-top:1px solid var(--border);padding-top:10px;display:flex;justify-content:flex-end;">
+                    <button class="btn btn-p btn-sm" data-action="openAsgn" data-id="${a._id}">Submit Work →</button>
+                  </div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        `}
+      </div>
+    </div>
+  `;
 }
 
 function renderAdminDash(d) {
@@ -435,9 +616,10 @@ function renderProfDash(cls) {
     </div></div>`;
 }
 
-function renderStudDash(cls, grouped) {
+function renderStudDash(cls, grouped, dl) {
   const total = grouped.reduce((a,g)=>a+g.submissions.length,0);
   const overall = grouped.length ? grouped.reduce((a,g)=>a+parseFloat(g.percentage||0),0)/grouped.length : null;
+  const dlHtml = renderDeadlinesSection(dl || curDeadlines, curDeadlineFilter);
   $('page-dashboard').innerHTML = `
     <div style="margin-bottom:16px;"><span style="font-size:15px;color:var(--text2);">Welcome, <strong>${CU.name}</strong></span></div>
     <div class="sr">
@@ -445,6 +627,7 @@ function renderStudDash(cls, grouped) {
       <div class="sb"><div class="sl">Graded Work</div><div class="sv">${total}</div><div class="ss">assignments</div></div>
       ${overall!==null?`<div class="sb"><div class="sl">Overall Avg</div><div class="sv" style="color:${overall>=70?'var(--green)':overall>=50?'var(--accent)':'var(--red)'};">${overall.toFixed(0)}%</div></div>`:''}
     </div>
+    ${dlHtml}
     <div class="card"><div class="ch"><span class="ct">Your Classrooms</span><button class="btn btn-s btn-sm" data-action="openJoinCls">+ Join Classroom</button></div><div class="cb">
       ${cls.length===0?`<div class="empty"><div class="ei">📚</div><h3>No classrooms joined</h3><p>Ask your professor for a class code.</p><button class="btn btn-p" data-action="openJoinCls">Join Classroom</button></div>`:
         `<div class="cg">${cls.map(clsCard).join('')}</div>`}

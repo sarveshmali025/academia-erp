@@ -45,13 +45,15 @@ function makeFakeAttendance() {
       return Object.assign(Promise.resolve(results), {
         populate() { return this; },
         select(f) {
-          // Simulate -records selection
+          let filtered = results;
           if (typeof f === 'string' && f.startsWith('-')) {
             const key = f.slice(1);
-            const filtered = results.map(s => { const c = {...s}; delete c[key]; return c; });
-            return Promise.resolve(filtered);
+            filtered = results.map(s => { const c = {...s}; delete c[key]; return c; });
           }
-          return Promise.resolve(results);
+          return Object.assign(Promise.resolve(filtered), {
+            sort() { return Promise.resolve(filtered); },
+            populate() { return this; }
+          });
         },
         sort() { return this; }
       });

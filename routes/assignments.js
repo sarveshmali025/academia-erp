@@ -6,6 +6,7 @@ const multer = require('multer');
 const { Assignment, Classroom, Submission, Notification, User } = require('../models');
 const { protect, restrictTo } = require('../middleware/auth');
 const jobService = require('../services/jobService');
+const deadlineService = require('../services/deadlineService');
 
 // Use memory storage (files stored as base64 in MongoDB)
 const storage = multer.memoryStorage();
@@ -18,7 +19,16 @@ const upload = multer({
 
 // SPECIFIC ROUTES FIRST (before /:id to avoid param conflicts)
 
-
+// SMART DEADLINE MANAGER ROUTE (STUDENT ONLY)
+// GET /api/assignments/deadlines
+router.get('/deadlines', protect, restrictTo('student'), async (req, res) => {
+  try {
+    const data = await deadlineService.getStudentDeadlines(req.user._id);
+    res.json({ success: true, ...data });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
 
 // CLASSROOM ROUTE
 // GET /api/assignments/classroom/:classroomId

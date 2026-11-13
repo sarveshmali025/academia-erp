@@ -7,6 +7,14 @@ const { protect } = require('../middleware/auth');
 
 router.get('/', protect, async (req, res) => {
   try {
+    if (req.user && req.user.role === 'student') {
+      try {
+        const deadlineService = require('../services/deadlineService');
+        await deadlineService.getStudentDeadlines(req.user._id);
+      } catch (remErr) {
+        // non-fatal
+      }
+    }
     const notifications = await Notification.find({ user: req.user._id }).sort('-createdAt').limit(30);
     const unreadCount = await Notification.countDocuments({ user: req.user._id, isRead: false });
     res.json({ success: true, notifications, unreadCount });
